@@ -6,11 +6,15 @@ set -euo pipefail
 #   autoconf/automake/libtool — memtier_benchmark autoreconf build
 #   pkg-config              — locate libevent / libssl during configure
 #   libevent (dev)          — memcached event loop + memtier
-#   pcre / pcre2 (dev)      — memtier_benchmark
-#   zlib (dev), openssl (dev) — memtier_benchmark
-#   curl                    — download source tarballs
+#   zlib (dev), openssl (dev) — memtier_benchmark (TLS auto-detected via libssl)
+#   curl, ca-certificates   — download source tarballs over HTTPS
+#
+# Note: memtier_benchmark 2.3.1 no longer depends on PCRE, so libpcre*-dev is
+# intentionally omitted. This keeps a single package list valid on Ubuntu 20.04,
+# 22.04 and 24.04 — on 24.04 libpcre3-dev is EOL and lives in the (often
+# disabled) "universe" component, which would otherwise break the install there.
 
-PKGS_DEBIAN="build-essential autoconf automake libtool pkg-config libevent-dev libpcre3-dev zlib1g-dev libssl-dev curl"
+PKGS_DEBIAN="build-essential autoconf automake libtool pkg-config libevent-dev zlib1g-dev libssl-dev curl ca-certificates"
 PKGS_RPM="gcc gcc-c++ make autoconf automake libtool pkgconfig libevent-devel pcre-devel zlib-devel openssl-devel curl"
 PKGS_ARCH="base-devel libevent pcre zlib openssl curl"
 PKGS_BREW="libevent pcre openssl curl autoconf automake libtool pkg-config"

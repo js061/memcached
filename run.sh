@@ -14,7 +14,11 @@ repeated runs accumulate in rst/ without overwriting.
 
 Env vars: MEMCACHED_CORES MEMCACHED_THREADS MEMTIER_CORES THREADS CONNECTIONS
           PIPELINE DURATION RATIO PROTOCOL DATA_SIZE KEY_PATTERN RATE_LIMIT
-          RUN_TAG
+          RATE_TOTAL RUN_TAG
+
+RATE_LIMIT is the per-connection RPS passed to memtier. RATE_TOTAL is optional
+and informational only (the total ops/sec target batch-run.sh derived it from);
+when set, the output filename encodes both as -rltotal<T>-rc<perconn>.
 EOF
             exit 0 ;;
         *) echo "Unknown option: $1" >&2; exit 1 ;;
@@ -54,7 +58,8 @@ RATIO="${RATIO:-1:10}"
 PROTOCOL="${PROTOCOL:-memcache_text}"
 DATA_SIZE="${DATA_SIZE:-32}"
 KEY_PATTERN="${KEY_PATTERN:-R:R}"
-RATE_LIMIT="${RATE_LIMIT:-}"
+RATE_LIMIT="${RATE_LIMIT:-}"   # per-connection RPS handed to memtier
+RATE_TOTAL="${RATE_TOTAL:-}"   # informational: total ops/sec target (set by batch-run.sh)
 
 # -- output file (encodes server + load config plus a UTC timestamp)
 RST_DIR="rst"
@@ -66,7 +71,11 @@ TAG_PART=""
 RATIO_PART="${RATIO//:/-}"
 KEY_PART="${KEY_PATTERN//:/-}"
 RL_PART=""
-[[ -n "$RATE_LIMIT" ]] && RL_PART="-rl${RATE_LIMIT}"
+if [[ -n "$RATE_TOTAL" ]]; then
+    RL_PART="-rltotal${RATE_TOTAL}-rc${RATE_LIMIT}"
+elif [[ -n "$RATE_LIMIT" ]]; then
+    RL_PART="-rl${RATE_LIMIT}"
+fi
 OUT="${RST_DIR}/memcached-t${MEMCACHED_THREADS}-cpu${MEMCACHED_CORES}_memtier-cpu${MEMTIER_CORES}-t${THREADS}-c${CONNECTIONS}-p${PIPELINE}-d${DURATION}-ratio${RATIO_PART}-data${DATA_SIZE}-key${KEY_PART}${RL_PART}${TAG_PART}_${STAMP}.out"
 
 # -- always restart memcached so the running config matches the filename
