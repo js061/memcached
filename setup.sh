@@ -110,7 +110,7 @@ esac
 echo ""
 info "Verifying required tools..."
 ALL_OK=1
-for cmd in gcc make autoconf automake libtool pkg-config curl; do
+for cmd in gcc make autoconf automake pkg-config curl; do
     if command -v "$cmd" &>/dev/null; then
         ok "$cmd  ($(command -v "$cmd"))"
     else
@@ -118,6 +118,18 @@ for cmd in gcc make autoconf automake libtool pkg-config curl; do
         ALL_OK=0
     fi
 done
+
+# autoreconf needs libtoolize, not the `libtool` wrapper script (which on
+# Debian/Ubuntu lives in the separate libtool-bin package). Homebrew prefixes
+# its GNU libtool with "g" to avoid clashing with Apple's /usr/bin/libtool.
+if command -v libtoolize &>/dev/null; then
+    ok "libtoolize  ($(command -v libtoolize))"
+elif command -v glibtoolize &>/dev/null; then
+    ok "glibtoolize  ($(command -v glibtoolize))"
+else
+    fail "libtoolize"
+    ALL_OK=0
+fi
 
 echo ""
 if [[ "$ALL_OK" -eq 1 ]]; then
